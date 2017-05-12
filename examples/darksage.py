@@ -3884,7 +3884,8 @@ class DARKSAGEConverter(tao.Converter):
                                     'StellarDiscMass', 'PseudoBulgeMass',
                                     'jStarDisc', 'jPseudoBulge', 'jGas', 'jHI', 'jH2',
                                     'RadiusHI', 'RadiusTrans', 'r50', 'r90', 'rSFR',
-                                    'ColdGas', 'MetalsColdGas', 'DiskScaleRadius'
+                                    'ColdGas', 'MetalsColdGas', 'DiskScaleRadius',
+                                    'SfrDiskZ', 'SfrBulgeZ', 'SfrDisk', 'SfrBulge'
                                 ]
                 for field in check_fields:
                     filt = (tree[field]<0) + (True-np.isfinite(tree[field]))
