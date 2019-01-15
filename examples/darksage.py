@@ -3570,8 +3570,8 @@ class DARKSAGEConverter(tao.Converter):
         DiscRadii = np.zeros((len(tree),30))
         SigmaHI = np.zeros((len(tree),30))
         for i in range(1,31):
-            DiscRadii[:,i-1] = (tree['DiscRadii_'+str(i)]+tree['DiscRadii_'+str(i-1)])/2
-            SigmaHI[:,i-1] = tree['DiscHI_'+str(i)]/(np.pi*(tree['DiscRadii_'+str(i)]**2-tree['DiscRadii_'+str(i-1)]**2))*1e-2/h
+            DiscRadii[:,i-1] = (tree['DiscRadii_'+str(i)]+tree['DiscRadii_'+str(i-1)])*0.5
+            SigmaHI[:,i-1] = tree['DiscHI_'+str(i)]/(np.pi*(tree['DiscRadii_'+str(i)]**2-tree['DiscRadii_'+str(i-1)]**2))*1e-2*h
         (row, col) = np.where(SigmaHI>1.0)
         filt = np.append(np.diff(row)>0, True)
         row, col = row[filt], col[filt]
@@ -3589,7 +3589,7 @@ class DARKSAGEConverter(tao.Converter):
             H2 = tree['DiscH2_'+str(i)]
             w = np.where((H2>0)&(HI>0))
             ratio[w,i-1] = HI[w]/H2[w]
-            DiscRadii[:,i-1] = (tree['DiscRadii_'+str(i)]+tree['DiscRadii_'+str(i-1)])/2
+            DiscRadii[:,i-1] = (tree['DiscRadii_'+str(i)]+tree['DiscRadii_'+str(i-1)])*0.5
         (row, col) = np.where(ratio>1.0)
         ind = np.searchsorted(row, np.unique(row))
         row, col = row[ind], col[ind]
