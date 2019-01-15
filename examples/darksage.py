@@ -3578,7 +3578,7 @@ class DARKSAGEConverter(tao.Converter):
         arr = np.zeros(len(tree))
         arr[row] = DiscRadii[row,col]
         row, col = row[col<29], col[col<29]
-        arr[row] = arr[row] + np.log10(SigmaHI[row,col])/np.log10(SigmaHI[row,col+1]/SigmaHI[row,col]) * (DiscRadii[row,col+1]-DiscRadii[row,col])
+        arr[row] = arr[row] + (SigmaHI[row,col]-1.0)/(SigmaHI[row,col]-SigmaHI[row,col+1]) * (DiscRadii[row,col+1]-DiscRadii[row,col])
         return arr
 
     def RadiusTrans(self, tree):
