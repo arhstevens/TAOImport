@@ -1,6 +1,6 @@
-"""Convert DARK SAGE output to TAO.
+"""Convert Dark Sage output to TAO.
 
-A control script to be used with `taoconvert` to convert DARK SAGE output
+A control script to be used with `taoconvert` to convert Dark Sage output
 binary data into HDF5 input for TAO.
 
 """
@@ -12,7 +12,7 @@ from collections import OrderedDict
 from tqdm import trange
 
 class DARKSAGEConverter(tao.Converter):
-    """Subclasses tao.Converter to perform SAGE output conversion."""
+    """Subclasses tao.Converter to perform Dark Sage output conversion."""
 
     def __init__(self, *args, **kwargs):
         src_fields_dict = OrderedDict([
@@ -3244,22 +3244,22 @@ class DARKSAGEConverter(tao.Converter):
 
     @classmethod
     def add_arguments(cls, parser):
-        """Adds extra arguments required for SAGE conversion.
+        """Adds extra arguments required for Dark Sage conversion.
 
         Extra arguments required for conversion are:
-          1. The location of the SAGE output trees.
+          1. The location of the Dark Sage output trees.
           2. The simulation box size.
           3. The list of expansion factors (a-list).
-          4. The SAGE parameters file.
+          4. The Dark Sage parameters file.
           5. The name of the simulation (dark matter/hydro).
           6. The name of the galaxy formation model (simulation name in case of hydro)
         """
 
         parser.add_argument('--trees-dir', default='.',
-                            help='location of SAGE trees')
+                            help='location of Dark Sage trees')
         parser.add_argument('--box-size', help='simulation box-size')
         parser.add_argument('--a-list', help='a-list file')
-        parser.add_argument('--parameters', help='SAGE parameter file')
+        parser.add_argument('--parameters', help='Dark Sage parameter file')
         parser.add_argument('--sim-name', help='name of the dark matter or '
                             'hydro simulation')
         parser.add_argument('--model-name', help='name of the SAM. Set to '
@@ -3268,14 +3268,14 @@ class DARKSAGEConverter(tao.Converter):
     def get_simulation_data(self):
         """Extract simulation data.
 
-        Extracts the simulation data from the SAGE parameter file and
+        Extracts the simulation data from the Dark Sage parameter file and
         returns a dictionary containing the values.
         """
 
         if not self.args.box_size:
             raise tao.ConversionError('Must specify a box-size')
         if not self.args.parameters:
-            raise tao.ConversionError('Must specify a SAGE parameter file')
+            raise tao.ConversionError('Must specify a Dark Sage parameter file')
         par = open(self.args.parameters, 'r').read()
         hubble = np.float32(re.search(r'Hubble_h\s+(\d*\.?\d*)',
                                       par, re.I).group(1))
@@ -3319,7 +3319,7 @@ class DARKSAGEConverter(tao.Converter):
         return redshifts
 
     def get_mapping_table(self):
-        """Returns a mapping from TAO fields to SAGE fields."""
+        """Returns a mapping from TAO fields to Dark Sage fields."""
 
         mapping = {'posx': 'Pos_x',
                    'posy': 'Pos_y',
@@ -3409,7 +3409,7 @@ class DARKSAGEConverter(tao.Converter):
         return fields
 
     def map_descendant(self, tree):
-        """Calculate the SAGE tree structure.
+        """Calculate the Dark Sage tree structure.
 
         SAGE does not output the descendant information in its tree files
         in a directly usable format. To calculate it we need to capitalise
@@ -3741,11 +3741,11 @@ class DARKSAGEConverter(tao.Converter):
         return np.sum(DiscMassArr, axis=1)
 
     def map_dt(self, tree):
-        """Convert SAGE dT values to Gyrs"""
+        """Convert Dark Sage dT values to Gyrs"""
         return tree['dT'] * 1e-3
 
     def iterate_trees(self):
-        """Iterate over SAGE trees."""
+        """Iterate over Dark Sage trees."""
         if self.Convertor.args.dataset_version == ‘2016’:
             file_order = ['ObjectType',
                           'GalaxyIndex',
