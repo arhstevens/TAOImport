@@ -302,7 +302,7 @@ class DARKSAGEConverter(tao.Converter):
                         'units': "Myr/h",
                         'order': 33,
                          }),
-               ('TimeofLastMinorMerger', {
+               ('TimeSinceLastMinorMerger', {
                         'type': np.float32,
                         'label': "Time since Last Minor Merger",
                         'description': "Look-back time of last minor merger",
@@ -2589,6 +2589,30 @@ class DARKSAGEConverter(tao.Converter):
                         'units': "Msun/year",
                         'order': -1,
                         }),
+               ('SfrFromH2', {
+                        'type': np.float32,
+                        'label': "Star formation Rate from direct H2 channel",
+                        'description': "Passive star formation rate",
+                        'group': "Internal",
+                        'units': "Msun/year",
+                        'order': -1,
+                        }),
+                ('SfrInstab', {
+                        'type': np.float32,
+                        'label': "Star formation Rate from instability channel",
+                        'description': "Instability-driven star formation rate",
+                        'group': "Internal",
+                        'units': "Msun/year",
+                        'order': -1,
+                        }),
+                ('SfrMergeBurst', {
+                        'type': np.float32,
+                        'label': "Star formation Rate from merger starburst channel",
+                        'description': "Merger-driven star formation rate",
+                        'group': "Internal",
+                        'units': "Msun/year",
+                        'order': -1,
+                        }),
                ('SfrDiskZ', {
                         'type': np.float32,
                         'label': "Avg. Metallicity of Star-forming Disk Gas",
@@ -3394,7 +3418,7 @@ class DARKSAGEConverter(tao.Converter):
              'dZStar', 'dZGas'
         ]
         
-        if self.Convertor.args.dataset_version == ‘2018’: wanted_field_keys += ['TimeSinceLastMinorMerger']
+        if self.args.dataset_version == '2018': wanted_field_keys += ['TimeSinceLastMinorMerger']
 
         fields = OrderedDict()
         for k in wanted_field_keys:
@@ -3495,7 +3519,10 @@ class DARKSAGEConverter(tao.Converter):
 
         Just sum the disk and bulge star formation rates
         """
-        return tree['SfrDisk'] + tree['SfrBulge']
+        if self.args.dataset_version == '2016' or self.args.dataset_version == '2018':
+            return tree['SfrDisk'] + tree['SfrBulge']
+        else:
+            return tree['SfrFromH2'] + tree['SfrInstab'] + tree['SfrMergeBurst']
                  
     def totHI(self, tree):
         arr = tree['DiscHI_1']
@@ -3746,7 +3773,7 @@ class DARKSAGEConverter(tao.Converter):
 
     def iterate_trees(self):
         """Iterate over Dark Sage trees."""
-        if self.Convertor.args.dataset_version == ‘2016’:
+        if self.args.dataset_version == '2016':
             file_order = ['ObjectType',
                           'GalaxyIndex',
                           'HaloIndex',
@@ -3826,7 +3853,7 @@ class DARKSAGEConverter(tao.Converter):
                           'infallVmax'
                           ]
                 
-        elif self.Convertor.args.dataset_version == ‘2018’:
+        elif self.args.dataset_version == '2018':
             file_order = ['ObjectType',
                           'GalaxyIndex',
                           'HaloIndex',
@@ -3895,6 +3922,77 @@ class DARKSAGEConverter(tao.Converter):
                           'infallVmax'
                           ]
 
+        else:
+            file_order = ['ObjectType',
+                          'GalaxyIndex',
+                          'HaloIndex',
+                          'SimulationHaloIndex',
+                          'TreeIndex',
+                          'SnapNum',
+                          'CentralGalaxyIndex',
+                          'CentralMvir',
+                          'mergeType',
+                          'mergeIntoID',
+                          'mergeIntoSnapNum',
+                          'dT',
+                          'Pos_x', 'Pos_y', 'Pos_z',
+                          'Vel_x', 'Vel_y', 'Vel_z',
+                          'Spin_x', 'Spin_y', 'Spin_z',
+                          'Len',
+                          'LenMax',
+                          'Mvir',
+                          'Rvir',
+                          'Vvir',
+                          'Vmax',
+                          'VelDisp',
+                          'DiscRadii_0', 'DiscRadii_1', 'DiscRadii_2', 'DiscRadii_3', 'DiscRadii_4', 'DiscRadii_5', 'DiscRadii_6', 'DiscRadii_7', 'DiscRadii_8', 'DiscRadii_9', 'DiscRadii_10', 'DiscRadii_11', 'DiscRadii_12', 'DiscRadii_13', 'DiscRadii_14', 'DiscRadii_15', 'DiscRadii_16', 'DiscRadii_17', 'DiscRadii_18', 'DiscRadii_19', 'DiscRadii_20', 'DiscRadii_21', 'DiscRadii_22', 'DiscRadii_23', 'DiscRadii_24', 'DiscRadii_25', 'DiscRadii_26', 'DiscRadii_27', 'DiscRadii_28', 'DiscRadii_29', 'DiscRadii_30',
+                          'ColdGas',
+                          'StellarMass',
+                          'MergerBulgeMass',
+                          'InstabilityBulgeMass',
+                          'HotGas',
+                          'EjectedMass',
+                          'BlackHoleMass',
+                          'ICS',
+                          'DiscGas_1', 'DiscGas_2', 'DiscGas_3', 'DiscGas_4', 'DiscGas_5', 'DiscGas_6', 'DiscGas_7', 'DiscGas_8', 'DiscGas_9', 'DiscGas_10', 'DiscGas_11', 'DiscGas_12', 'DiscGas_13', 'DiscGas_14', 'DiscGas_15', 'DiscGas_16', 'DiscGas_17', 'DiscGas_18', 'DiscGas_19', 'DiscGas_20', 'DiscGas_21', 'DiscGas_22', 'DiscGas_23', 'DiscGas_24', 'DiscGas_25', 'DiscGas_26', 'DiscGas_27', 'DiscGas_28', 'DiscGas_29', 'DiscGas_30',
+                          'DiscStars_1', 'DiscStars_2', 'DiscStars_3', 'DiscStars_4', 'DiscStars_5', 'DiscStars_6', 'DiscStars_7', 'DiscStars_8', 'DiscStars_9', 'DiscStars_10', 'DiscStars_11', 'DiscStars_12', 'DiscStars_13', 'DiscStars_14', 'DiscStars_15', 'DiscStars_16', 'DiscStars_17', 'DiscStars_18', 'DiscStars_19', 'DiscStars_20', 'DiscStars_21', 'DiscStars_22', 'DiscStars_23', 'DiscStars_24', 'DiscStars_25', 'DiscStars_26', 'DiscStars_27', 'DiscStars_28', 'DiscStars_29', 'DiscStars_30',
+                          'SpinStars_x', 'SpinStars_y', 'SpinStars_z',
+                          'SpinGas_x', 'SpinGas_y', 'SpinGas_z',
+                          'SpinMergerBulge_x', 'SpinMergerBulge_y', 'SpinMergerBulge_z',
+                          'StarsInSitu',
+                          'StarsInstability',
+                          'StarsMergeBurst',
+                          'DiscHI_1', 'DiscHI_2', 'DiscHI_3', 'DiscHI_4', 'DiscHI_5', 'DiscHI_6', 'DiscHI_7', 'DiscHI_8', 'DiscHI_9', 'DiscHI_10', 'DiscHI_11', 'DiscHI_12', 'DiscHI_13', 'DiscHI_14', 'DiscHI_15', 'DiscHI_16', 'DiscHI_17', 'DiscHI_18', 'DiscHI_19', 'DiscHI_20', 'DiscHI_21', 'DiscHI_22', 'DiscHI_23', 'DiscHI_24', 'DiscHI_25', 'DiscHI_26', 'DiscHI_27', 'DiscHI_28', 'DiscHI_29', 'DiscHI_30',
+                          'DiscH2_1', 'DiscH2_2', 'DiscH2_3', 'DiscH2_4', 'DiscH2_5', 'DiscH2_6', 'DiscH2_7', 'DiscH2_8', 'DiscH2_9', 'DiscH2_10', 'DiscH2_11', 'DiscH2_12', 'DiscH2_13', 'DiscH2_14', 'DiscH2_15', 'DiscH2_16', 'DiscH2_17', 'DiscH2_18', 'DiscH2_19', 'DiscH2_20', 'DiscH2_21', 'DiscH2_22', 'DiscH2_23', 'DiscH2_24', 'DiscH2_25', 'DiscH2_26', 'DiscH2_27', 'DiscH2_28', 'DiscH2_29', 'DiscH2_30',
+                          'DiscSFR_1', 'DiscSFR_2', 'DiscSFR_3', 'DiscSFR_4', 'DiscSFR_5', 'DiscSFR_6', 'DiscSFR_7', 'DiscSFR_8', 'DiscSFR_9', 'DiscSFR_10', 'DiscSFR_11', 'DiscSFR_12', 'DiscSFR_13', 'DiscSFR_14', 'DiscSFR_15', 'DiscSFR_16', 'DiscSFR_17', 'DiscSFR_18', 'DiscSFR_19', 'DiscSFR_20', 'DiscSFR_21', 'DiscSFR_22', 'DiscSFR_23', 'DiscSFR_24', 'DiscSFR_25', 'DiscSFR_26', 'DiscSFR_27', 'DiscSFR_28', 'DiscSFR_29', 'DiscSFR_30',
+                          'MetalsColdGas',
+                          'MetalsStellarMass',
+                          'MetalsMergerBulgeMass',
+                          'MetalsInstabilityBulgeMass',
+                          'MetalsHotGas',
+                          'MetalsEjectedMass',
+                          'MetalsICS',
+                          'DiscGasMetals_1', 'DiscGasMetals_2', 'DiscGasMetals_3', 'DiscGasMetals_4', 'DiscGasMetals_5', 'DiscGasMetals_6', 'DiscGasMetals_7', 'DiscGasMetals_8', 'DiscGasMetals_9', 'DiscGasMetals_10', 'DiscGasMetals_11', 'DiscGasMetals_12', 'DiscGasMetals_13', 'DiscGasMetals_14', 'DiscGasMetals_15', 'DiscGasMetals_16', 'DiscGasMetals_17', 'DiscGasMetals_18', 'DiscGasMetals_19', 'DiscGasMetals_20', 'DiscGasMetals_21', 'DiscGasMetals_22', 'DiscGasMetals_23', 'DiscGasMetals_24', 'DiscGasMetals_25', 'DiscGasMetals_26', 'DiscGasMetals_27', 'DiscGasMetals_28', 'DiscGasMetals_29', 'DiscGasMetals_30',
+                          'DiscStarsMetals_1', 'DiscStarsMetals_2', 'DiscStarsMetals_3', 'DiscStarsMetals_4', 'DiscStarsMetals_5', 'DiscStarsMetals_6', 'DiscStarsMetals_7', 'DiscStarsMetals_8', 'DiscStarsMetals_9', 'DiscStarsMetals_10', 'DiscStarsMetals_11', 'DiscStarsMetals_12', 'DiscStarsMetals_13', 'DiscStarsMetals_14', 'DiscStarsMetals_15', 'DiscStarsMetals_16', 'DiscStarsMetals_17', 'DiscStarsMetals_18', 'DiscStarsMetals_19', 'DiscStarsMetals_20', 'DiscStarsMetals_21', 'DiscStarsMetals_22', 'DiscStarsMetals_23', 'DiscStarsMetals_24', 'DiscStarsMetals_25', 'DiscStarsMetals_26', 'DiscStarsMetals_27', 'DiscStarsMetals_28', 'DiscStarsMetals_29', 'DiscStarsMetals_30',
+                          'SfrFromH2',
+                          'SfrInstab',
+                          'SfrMergeBurst',
+                          'SfrDiskZ',
+                          'SfrBulgeZ',
+                          'DiskScaleRadius',
+                          'CoolingScaleRadius',
+                          'StellarDiscScaleRadius',
+                          'Cooling',
+                          'Heating',
+                          'TimeSinceLastMajorMerger',
+                          'TimeSinceLastMinorMerger',
+                          'OutflowRate',
+                          'infallMvir',
+                          'infallVvir',
+                          'infallVmax'
+                          ]
+
+
         ordered_dtype = []
         for k in file_order:
             field_dict = self.src_fields_dict[k]
@@ -3934,7 +4032,7 @@ class DARKSAGEConverter(tao.Converter):
         from_file_dtype = np.dtype(ordered_dtype, align=True)
         print("from file type = {0}".format(from_file_dtype))
         print("sizeof(file_dtype) = {0}".format(from_file_dtype.itemsize))
-        assert from_file_dtype.itemsize == 1544, "Size of datatypes do not match"
+#        assert from_file_dtype.itemsize == 1544, "Size of datatypes do not match"
         ordered_dtype.extend(computed_field_list)
         src_type = np.dtype(ordered_dtype)
         # print("src_type = {0}".format(src_type))
@@ -4002,7 +4100,7 @@ class DARKSAGEConverter(tao.Converter):
                 # Reset the negative values for TimeSinceLastMajorMerger and
                 # TimeofLastMinorMerger.
                 MergerFields = ['TimeSinceLastMajorMerger']
-                self.Convertor.args.dataset_version == ‘2018’: MergerFields += ['TimeSinceLastMinorMerger']
+                if self.args.dataset_version == '2018': MergerFields += ['TimeSinceLastMinorMerger']
                 for f in MergerFields:
                     filt = tree[f] < 0.0
                     tree[f][filt] = -1.0
