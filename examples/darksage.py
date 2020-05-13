@@ -3418,7 +3418,7 @@ class DARKSAGEConverter(tao.Converter):
              'dZStar', 'dZGas'
         ]
         
-        if self.args.dataset_version == '2018': wanted_field_keys += ['TimeSinceLastMinorMerger']
+        if self.args.dataset_version != '2016': wanted_field_keys += ['TimeSinceLastMinorMerger']
 
         fields = OrderedDict()
         for k in wanted_field_keys:
@@ -3519,7 +3519,7 @@ class DARKSAGEConverter(tao.Converter):
 
         Just sum the disk and bulge star formation rates
         """
-        if self.args.dataset_version == '2016' or self.args.dataset_version == '2018':
+        if self.args.dataset_version in ['2016', '2018']:
             return tree['SfrDisk'] + tree['SfrBulge']
         else:
             return tree['SfrFromH2'] + tree['SfrInstab'] + tree['SfrMergeBurst']
@@ -3667,7 +3667,10 @@ class DARKSAGEConverter(tao.Converter):
         return arr
 
     def rSFR(self, tree):
-        DiscTot = tree['SfrDisk']
+        if self.args.dataset_version in ['2016', '2018']:
+            DiscTot = tree['SfrDisk']
+        else:
+            DiscTot = tree['SfrFromH2'] + tree['SfrInstab'] # Probably need to revise how the various SFR channels are handled here and in general for TAO SED purposes
         DiscArr = np.zeros((len(tree),30))
         DiscRadii = np.zeros((len(tree),30))
         arr = np.zeros(len(tree))
@@ -3767,12 +3770,19 @@ class DARKSAGEConverter(tao.Converter):
         DiscMassArr[np.where(DiscRadii_norm>=1)] = 0
         return np.sum(DiscMassArr, axis=1)
 
+    def DiskSfr(self, tree):
+        return tree['SfrFromH2'] + tree['SfrInstab']
+        
+    def BulgeSfr(self, tree):
+        return tree['SfrMergeBurst']
+
     def map_dt(self, tree):
         """Convert Dark Sage dT values to Gyrs"""
         return tree['dT'] * 1e-3
 
     def iterate_trees(self):
         """Iterate over Dark Sage trees."""
+        print 'iterating'
         if self.args.dataset_version == '2016':
             file_order = ['ObjectType',
                           'GalaxyIndex',
@@ -3998,6 +4008,7 @@ class DARKSAGEConverter(tao.Converter):
             field_dict = self.src_fields_dict[k]
             ordered_dtype.append((k, field_dict['type']))
 
+        print 'done with file ordering'
         j_bin, h = self.get_jbins()
     
         computed_fields = {'TotSfr': self.totsfr,
@@ -4020,6 +4031,9 @@ class DARKSAGEConverter(tao.Converter):
                            'dZGas': self.dZGas,
                            'MetalsStellarDiscMass': self.MetalsStellarDiscMass,
                            'MetalsPseudoBulge': self.MetalsPseudoBulge}
+        if self.args.dataset_version not in ['2016', '2018']:
+            computed_fields['SfrDisk'] = self.DiskSfr
+            computed_fields['SfrBulge'] = self.BulgeSfr
         computed_field_list = []
         for f in computed_fields:
             if f not in field_dict.keys():
@@ -4037,6 +4051,8 @@ class DARKSAGEConverter(tao.Converter):
         src_type = np.dtype(ordered_dtype)
         # print("src_type = {0}".format(src_type))
 
+        print self.args.trees_dir
+
         entries = [e for e in os.listdir(self.args.trees_dir)
                    if os.path.isfile(os.path.join(self.args.trees_dir, e))]
         entries = [e for e in entries if e.startswith('model_z')]
@@ -4048,6 +4064,8 @@ class DARKSAGEConverter(tao.Converter):
         group_strings.sort(lambda x, y: -1 if int(x) < int(y) else 1)
         redshift_strings.sort(lambda x, y: 1 if float(x) < float(y) else -1)
 
+        print 'group_strings', group_strings
+
         totntrees = 0L
         for group in group_strings:
             # redshift array is sorted -> pick the last redshift
@@ -4057,6 +4075,8 @@ class DARKSAGEConverter(tao.Converter):
                 n_trees = np.fromfile(f, np.uint32, 1)[0]
                 totntrees += n_trees
 
+        print 'done with first group_strings loop'
+        
         numtrees_processed = 0
         for group in group_strings:
             files = []
@@ -4137,9 +4157,9 @@ class DARKSAGEConverter(tao.Converter):
                     tree[field][filt] = 0.0
                     
 
-		# dT for first snapshot might be a problem
-		ind = tree['dT'] < 0.0
-                
+                # dT for first snapshot might be a problem
+                ind = tree['dT'] < 0.0
+                        
                 ## MS: Why is this 8.317 -- Adam Stevens should know
                 tree['dT'][ind] = 8.317
 
@@ -4169,4 +4189,4 @@ class DARKSAGEConverter(tao.Converter):
 
             print("Done with {0}. Ntrees converted = {1} (out of {2})"
                   .format(group, numtrees_processed, totntrees))
-                
+                    
